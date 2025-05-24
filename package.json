@@ -3,6 +3,24 @@
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
     "crypto": "^1.0.1",
-    "express": "^5.1.0"
-  }
+    "express": "^5.1.0",
+    "sqlite3": "^5.1.7"
+  },
+  "name": "appsecproject",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./server/server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Maitah2k/AppSecProject.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Maitah2k/AppSecProject/issues"
+  },
+  "homepage": "https://github.com/Maitah2k/AppSecProject#readme"
 }
