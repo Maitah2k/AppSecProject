@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const sqlite3 = require('sqlite3');
@@ -5,12 +6,26 @@ const bcrypt = require('bcrypt');
 const createDOMPurify = require('dompurify');
 const { JSDOM } = require('jsdom');
 
+const session = require('express-session');
+const SQLiteStore = require('connect-sqlite3')(session);
+
 const app = express();
-const PORT = 6960;
+const PORT = process.env.PORT;
 const saltRounds = 10;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+const SESSION_SECRET = process.env.SESSION_SECRET;
+app.use(session({
+    store: new SQLiteStore({ db: 'sessions.db', dir: './' }),
+    secret: SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        maxAge: 1000 * 60 * 60 * 24 // 1 day
+    }
+}));
 
 const db = new sqlite3.Database(path.join(__dirname, 'users.db')); // Opens connection to database
 
@@ -35,8 +50,8 @@ app.post('/register.html', (req, res) => {
             return res.status(500).json({ message: 'Hashing error' });
         }
 
-        const insertQuery = `INSERT INTO users (username, password, email) VALUES (?, ?, ?)`;
-        db.run(insertQuery, [sanitizedUsr, hash, sanitizedEmail], function (error) {
+        const insertQuery = `INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)`;
+        db.run(insertQuery, [sanitizedUsr, hash, sanitizedEmail, "user"], function (error) {
             if (error) {
                 console.error(error);
                 return res.status(500).json({ message: 'Database error' });
@@ -70,14 +85,22 @@ app.post('/login.html', (req, res) => {
         }
 
         bcrypt.compare(sanitizedPassword, row.password, (err, result) => {
-            if (err) {
+            if (err) 
+            {
                 console.error('Bcrypt compare error:', err);
                 return res.status(500).json({ message: 'Internal error' });
             }
 
-            if (result) {
+            if (result) 
+            {
+                req.session.user = {
+                    username: sanitizedUsr,
+                    role: row.role
+                };
                 res.status(200).json({ message: 'Login successful' });
-            } else {
+            } 
+            else 
+            {
                 res.status(401).json({ message: "Incorrect username or password" });
             }
         });

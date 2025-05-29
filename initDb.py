@@ -7,7 +7,8 @@ def createTable(category):
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE, 
                 password TEXT,
-                email TEXT UNIQUE
+                email TEXT UNIQUE,
+                role TEXT NOT NULL
             )"""
     conn.execute(query)
     conn.commit()

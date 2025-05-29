@@ -2,8 +2,13 @@
   "dependencies": {
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
+    "connect-sqlite3": "^0.9.15",
     "crypto": "^1.0.1",
+    "dompurify": "^3.2.6",
+    "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "express-session": "^1.18.1",
+    "jsdom": "^26.1.0",
     "sqlite3": "^5.1.7"
   },
   "name": "appsecproject",
