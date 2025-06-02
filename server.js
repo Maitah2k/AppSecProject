@@ -121,7 +121,9 @@ app.get('/admin.html', requireRole('admin'), (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'admin.html'));
 });
 
-
+app.get('/user.html', requireRole('user'), (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'user.html'));
+});
 
 
 const ADMIN_USER = process.env.ADMIN_USER;
