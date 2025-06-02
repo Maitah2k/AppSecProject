@@ -101,3 +101,14 @@ main {
     background-color: rgb(0, 77, 170);
     color: yellow;
 }
+
+.Home-Border {
+    border: 2px solid #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    background-color: white;
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+    margin : 20px auto;
+}

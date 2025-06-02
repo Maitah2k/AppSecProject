@@ -32,6 +32,12 @@ const db = new sqlite3.Database(path.join(__dirname, 'users.db')); // Opens conn
 const window = new JSDOM('').window;
 const DOMPurify = createDOMPurify(window);
 
+const usernameRegex = /^[A-Za-z0-9_]{3,20}$/;
+const emailRegex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/;
+const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{12,}$/;
+
+// Middleware to validate user input
+
 // Handles POST requests to register new user
 app.post('/register.html', (req, res) => {
     const { usr, email, password } = req.body;
@@ -39,9 +45,20 @@ app.post('/register.html', (req, res) => {
     const sanitizedUsr = DOMPurify.sanitize(usr);
     const sanitizedEmail = DOMPurify.sanitize(email);
 
-
     if (!sanitizedUsr || !sanitizedEmail || !password) {
         return res.status(400).json({ message: 'Missing fields' });
+    }
+
+    if (!usernameRegex.test(sanitizedUsr)) {
+        return res.status(400).json({ message: 'Invalid username format' });
+    }
+
+    if (!emailRegex.test(sanitizedEmail)) {
+        return res.status(400).json({ message: 'Invalid email format' });
+    }
+
+    if (!passwordRegex.test(password)) {
+        return res.status(400).json({ message: 'Password must be at least 12 characters long and contain a letter and a number' });
     }
 
     bcrypt.hash(password, saltRounds, (err, hash) => {
@@ -66,11 +83,14 @@ app.post('/register.html', (req, res) => {
 // Handles POST request to login
 app.post('/login.html', (req, res) => {
     const { usr, password } = req.body;
-
     const sanitizedUsr = DOMPurify.sanitize(usr);
 
     if (!sanitizedUsr || !password) {
         return res.status(400).json({ message: 'Missing fields' });
+    }
+
+    if (!usernameRegex.test(sanitizedUsr)) {
+        return res.status(400).json({ message: 'Invalid username format' });
     }
 
     const searchQuery = `SELECT * FROM users WHERE username = ?`;
@@ -85,27 +105,24 @@ app.post('/login.html', (req, res) => {
         }
 
         bcrypt.compare(password, row.password, (err, result) => {
-            if (err) 
-            {
+            if (err) {
                 console.error('Bcrypt compare error:', err);
                 return res.status(500).json({ message: 'Internal error' });
             }
 
-            if (result) 
-            {
+            if (result) {
                 req.session.user = {
                     username: sanitizedUsr,
                     role: row.role
                 };
                 res.status(200).json({ message: 'Login successful' });
-            } 
-            else 
-            {
+            } else {
                 res.status(401).json({ message: "Incorrect username or password" });
             }
         });
     });
 });
+
 
 function requireRole(role) {
     return function (req, res, next) {
