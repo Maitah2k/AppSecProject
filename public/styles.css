@@ -84,3 +84,20 @@ main {
     background-color: rgb(0, 77, 170);
     color: yellow;
 }
+
+.logoutbtn {
+    padding: 7px;
+    background-color: rgb(6, 90, 185);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    position: absolute;
+    right : 20px;
+}
+.logoutbtn:hover {
+    background-color: rgb(0, 77, 170);
+    color: yellow;
+}
