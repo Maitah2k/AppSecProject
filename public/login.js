@@ -1,4 +1,4 @@
-const server = "http://localhost:6960/login.html";
+const server = `${window.location.origin}/login.html`;
 
 function loginUser()
 {
@@ -19,14 +19,21 @@ function loginUser()
     })
     .then(response => response.json())
     .then(data => {
-        statusmsg.innerText = data.message;
-        statusmsg.style.display = "block";
+        
         if (data.message == "success")
-            statusmsg.style.color = "green";
+        {    
+            console.log(data.redirect);
+            window.location.href = data.redirect;
+        }
+            
+        else if (data.message == "fail")
+            statusmsg.innerText = "Incorrect username or password";
         
         else
-            statusmsg.style.color = "red";
-        
+            statusmsg.innerText = data.message;
+
+        statusmsg.style.display = "block";
+        statusmsg.style.color = "red";
     })
     .catch(error => {
         statusmsg.innerText = error;

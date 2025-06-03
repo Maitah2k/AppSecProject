@@ -1,4 +1,4 @@
-const server = "http://localhost:6960/register.html";
+const server = `${window.location.origin}/register.html`;
 
 function registerUser()
 {

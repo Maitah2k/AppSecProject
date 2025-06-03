@@ -36,8 +36,7 @@ const usernameRegex = /^[A-Za-z0-9_]{3,20}$/;
 const emailRegex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/;
 const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{12,}$/;
 
-// Middleware to validate user input
-
+// POST REQUEST HANDLING
 // Handles POST requests to register new user
 app.post('/register.html', (req, res) => {
     const { usr, email, password } = req.body;
@@ -115,25 +114,45 @@ app.post('/login.html', (req, res) => {
                     username: sanitizedUsr,
                     role: row.role
                 };
-                res.status(200).json({ message: 'Login successful' });
+
+                let redirect;
+                if (req.session.user.role == 'admin')
+                    redirect = 'admin.html';
+                else if (req.session.user.role == 'user')
+                    redirect = 'user.html';
+
+                res.status(200).json({ message: 'success', redirect: redirect});
             } else {
-                res.status(401).json({ message: "Incorrect username or password" });
+                res.status(401).json({ message: "fail" });
             }
         });
     });
 });
 
+app.post("/logout", (req, res) => {
+    if (req.session.user)
+        req.session.destroy(err => {
+            if (err)
+                return res.status(500).json({ message: 'Logout error'});
+            
+            res.clearCookie('connect.sid');
+            res.json({ message: "success" });
+        });
+})
+// END OF POST REQUEST HANDLING
 
+// MIDDLEWARE FOR ROLE CHECKING
 function requireRole(role) {
     return function (req, res, next) {
         if (req.session.user && req.session.user.role === role) {
             next();
         } else {
-            res.status(403).json({ message: 'Forbidden: insufficient privileges' }); // ❌ block access
+            res.status(403).sendFile(path.join(__dirname, 'error', '403.html'));
         }
     };
 }
 
+// HANDLING GET REQUESTS
 app.get('/admin.html', requireRole('admin'), (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'admin.html'));
 });
@@ -142,7 +161,42 @@ app.get('/user.html', requireRole('user'), (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'user.html'));
 });
 
+app.get('/login.html', (req, res) => {
+    if (req.session.user)
+    {
+        let redirect;
+        if (req.session.user.role == 'admin')
+            redirect = 'admin.html';
+        else if (req.session.user.role == 'user')
+            redirect = 'user.html';
 
+        res.status(302).sendFile(path.join(__dirname, 'views', redirect))
+    }
+    else
+        res.status(200).sendFile(path.join(__dirname, 'views', 'login.html'));
+})
+
+app.get('/register.html', (req, res) => {
+    if (req.session.user)
+    {
+        let redirect;
+        if (req.session.user.role == 'admin')
+            redirect = 'admin.html';
+        else if (req.session.user.role == 'user')
+            redirect = 'user.html';
+
+           res.status(302).sendFile(path.join(__dirname, 'views', redirect))
+    }
+    else
+        res.status(200).sendFile(path.join(__dirname, 'views', 'register.html'));
+})
+
+app.use((req, res) => {
+    res.status(404).sendFile(path.join(__dirname, 'error', '404.html'));
+});
+// END OF GET REQUEST HANDLING
+
+// ADMIN CREATION
 const ADMIN_USER = process.env.ADMIN_USER;
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 const ADMIN_PASS = process.env.ADMIN_PASS;
@@ -173,7 +227,7 @@ db.get(checkAdminQuery, [ADMIN_USER], (err, row) => {
         console.log("🔒 Admin user already exists, skipping creation.");
     }
 });
-
+// END OF ADMIN CREATION
 
 app.listen(PORT, () => {
     console.log("Server is running on port", PORT);

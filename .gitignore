@@ -1,4 +1,4 @@
 node_modules
-users.db
 .env
+users.db
 sessions.db
