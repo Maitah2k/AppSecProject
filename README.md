@@ -18,6 +18,7 @@ project/
 ├── views/      # HTML views not served statically
 ├── error/      # Pages served in case of errors
 ├── users.db    # SQLite database storing user info
+├── sessions.db # SQLITE database storing session data
 ├── .env        # Environment variables
 ├── server.js   # Main Express server
 └── README.md
