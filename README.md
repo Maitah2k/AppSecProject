@@ -14,13 +14,13 @@ This is a simple Node.js web application with the following features:
 
 ```
 project/
-├── public/     # Home page, CSS, client JS
-├── views/      # HTML views not served statically
-├── error/      # Pages served in case of errors
-├── users.db    # SQLite database storing user info
-├── sessions.db # SQLITE database storing session data
-├── .env        # Environment variables
-├── server.js   # Main Express server
+├── public/         # Home page, CSS, client JS
+├── views/          # HTML views not served statically
+├── error/          # Pages served in case of errors
+├── users.db        # SQLite database storing user info
+├── sessions.db     # SQLITE database storing session data
+├── .env            # Environment variables
+├── server.js       # Main Express server
 └── README.md
 ```
 ## ✅ Requirements
