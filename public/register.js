@@ -26,8 +26,10 @@ function registerUser()
         statusmsg.innerText = data.message;
         statusmsg.style.display = "block";
         if (data.message == "success")
+        {
             statusmsg.style.color = "green";
-        
+            statusmsg.innerText = `Successfully registered user with name: ${data.usr}`;
+        }
         else
             statusmsg.style.color = "red";
     })

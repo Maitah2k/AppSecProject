@@ -96,7 +96,7 @@ app.post('/register.html', (req, res) => {
             }
 
             console.log(`Inserted row into userdb with rowid ${this.lastID}`);
-            res.status(200).json({ message: "success" });
+            res.status(200).json({ message: "success", usr: sanitizedUsr });
         });
     });
 });
