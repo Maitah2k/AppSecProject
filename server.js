@@ -89,7 +89,7 @@ app.post('/register.html', (req, res) => {
         }
 
         const insertQuery = `INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)`;
-        db.run(insertQuery, [encryptedUsr, hash, encryptedEmail, "user"], function (error) {
+        db.run(insertQuery, [encryptedUsr, hash, encryptedEmail, encrypt("user")], function (error) {
             if (error) {
                 console.error(error);
                 return res.status(500).json({ message: 'Database error' });
@@ -136,14 +136,20 @@ app.post('/login.html', (req, res) => {
             if (result) {
                 const decryptedUsr = decrypt(row.username);   // Decrypt username
                 const decryptedEmail = decrypt(row.email);    // Decrypt email
+                const decryptedRole = decrypt(row.role);      // Decrypt role
 
                 req.session.user = {
                     username: decryptedUsr,
-                    role: row.role,
+                    role: decryptedRole,
                     email: decryptedEmail
                 };
 
-                let redirect = (row.role === 'admin') ? 'admin.html' : 'user.html';
+                let redirect;
+                if (decryptedRole == "admin")
+                    redirect = "admin.html";
+                else if (decryptedRole == "user")
+                    redirect = "user.html";
+
                 res.status(200).json({ message: 'success', redirect: redirect });
             } else {
                 res.status(401).json({ message: "fail" });
@@ -208,35 +214,53 @@ app.use((req, res) => {
     res.status(404).sendFile(path.join(__dirname, 'error', '404.html'));
 });
 
-// ------------------ ADMIN CREATION ------------------
-const ADMIN_USER = process.env.ADMIN_USER;
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
-const ADMIN_PASS = process.env.ADMIN_PASS;
-const adminRole = 'admin';
 
-// Check if admin exists, if not create it with encrypted username and email
-db.get(`SELECT * FROM users WHERE username = ?`, [encrypt(ADMIN_USER)], (err, row) => {
-    if (err) {
-        return console.error("DB error while checking for admin:", err);
-    }
+db.run(`
+    CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE, 
+                password TEXT,
+                email TEXT UNIQUE,
+                role TEXT NOT NULL
+        )`
+        ,[], function (err) {
+            if (err)
+                return console.log("❌ Error creating database", err);
+            console.log("✅ Database created successfully");
 
-    if (!row) {
-        bcrypt.hash(ADMIN_PASS, saltRounds, (err, hashedPassword) => {
-            if (err) return console.error("Hashing error:", err);
+            // ------------------ ADMIN CREATION ------------------
+            const ADMIN_USER = process.env.ADMIN_USER;
+            const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+            const ADMIN_PASS = process.env.ADMIN_PASS;
+            const adminRole = 'admin';
 
-            const encryptedUsr = encrypt(ADMIN_USER);
-            const encryptedEmail = encrypt(ADMIN_EMAIL);
-            db.run(`INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)`,
-                [encryptedUsr, hashedPassword, encryptedEmail, adminRole],
-                function (err) {
-                    if (err) return console.error("Error inserting admin user:", err);
-                    console.log(`✅ Admin user created.`);
-                });
-        });
-    } else {
-        console.log("🔒 Admin user already exists, skipping creation.");
-    }
-});
+            // Check if admin exists, if not create it with encrypted username and email
+            db.get(`SELECT * FROM users WHERE username = ?`, [encrypt(ADMIN_USER)], (err, row) => {
+                if (err) {
+                    return console.error("DB error while checking for admin:", err);
+                }
+
+                if (!row) {
+                    bcrypt.hash(ADMIN_PASS, saltRounds, (err, hashedPassword) => {
+                        if (err) return console.error("Hashing error:", err);
+
+                        const encryptedUsr = encrypt(ADMIN_USER);
+                        const encryptedEmail = encrypt(ADMIN_EMAIL);
+                        db.run(`INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)`,
+                            [encryptedUsr, hashedPassword, encryptedEmail, encrypt(adminRole)],
+                            function (err) {
+                                if (err) return console.error("Error inserting admin user:", err);
+                                console.log(`✅ Admin user created.`);
+                            });
+                    });
+                } else {
+                    console.log("🔒 Admin user already exists, skipping creation.");
+                }
+            });
+    })
+    
+
+
 
 // ------------------ START SERVER ------------------
 app.listen(PORT, () => {
